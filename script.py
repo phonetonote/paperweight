@@ -8,7 +8,7 @@ def extract_links(directory):
     arxiv_abs_links = set()
 
     link_regex = re.compile(
-        r"https?://(?:www\.)?(arxiv\.org/(?:abs|pdf)/[^\s/#?]+(?:v\d+)?(?:[^\s]*)|[^ \s]+\.pdf)"
+        r"(https?://(?:www\.)?(?:arxiv\.org/(?:abs|pdf)/[^\s/#?]+(?:v\d+)?[^\s]*|[^ \s]+\.pdf))"
     )
 
     for root, dirs, files in os.walk(directory):
