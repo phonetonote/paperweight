@@ -1,5 +1,6 @@
 import os
 import re
+import argparse
 
 
 def extract_links(directory):
@@ -24,13 +25,13 @@ def extract_links(directory):
 
 def _extract_links_from_text(text):
     link_sets = {"arxiv_pdf": set(), "arxiv_abs": set(), "pdf": set()}
-    link_regex = re.compile(r"https?://[^\s,#?]+[^\s]*")
+    link_regex = re.compile(
+        r"(https?://(?:www\.)?arxiv\.org/(?:abs|pdf)/[^\s/#?]+(?:v\d+)?)(?=\W|$)|(https?://[^\s]+\.pdf)(?=\W|$)"
+    )
 
     links = link_regex.findall(text)
-    for link in links:
-        # Trim leading and trailing non-URL characters
-        link = link.strip("(),[]{}")
-        # Categorize the link
+    for link_group in links:
+        link = next(sublink for sublink in link_group if sublink)
         if "arxiv.org/pdf/" in link:
             link_sets["arxiv_pdf"].add(link)
         elif "arxiv.org/abs/" in link:
@@ -45,3 +46,24 @@ def _merge_link_sets(accumulated_link_sets, new_link_sets):
     for key in accumulated_link_sets:
         accumulated_link_sets[key] = accumulated_link_sets[key].union(new_link_sets[key])
     return accumulated_link_sets
+
+
+def parse_arguments():
+    parser = argparse.ArgumentParser(
+        description="Extract links from markdown files in the specified directory."
+    )
+    parser.add_argument("directory", help="Path to the directory containing markdown files")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_arguments()
+    pdf_links, arxiv_pdf_links, arxiv_abs_links = extract_links(args.directory)
+
+    print("PDF Links:", pdf_links)
+    print("ArXiv PDF Links:", arxiv_pdf_links)
+    print("ArXiv Abstract Links:", arxiv_abs_links)
+
+
+if __name__ == "__main__":
+    main()

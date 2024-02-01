@@ -2,3 +2,4 @@
 data/
 .mypy_cache/
 .DS_Store
+.vscode/
