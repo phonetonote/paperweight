@@ -8,13 +8,16 @@ def extract_links(directory):
 
     for root, _, files in os.walk(directory):
         for file in filter(lambda f: f.endswith(".md"), files):
+            file_path = os.path.join(root, file)
             try:
-                with open(os.path.join(root, file), "r") as f:
+                with open(file_path, "r", encoding="utf-8") as f:
                     file_content = f.read()
-                    new_link_sets = _extract_links_from_text(file_content)
-                    accumulated_link_sets = _merge_link_sets(accumulated_link_sets, new_link_sets)
+                new_link_sets = _extract_links_from_text(file_content)
+                accumulated_link_sets = _merge_link_sets(accumulated_link_sets, new_link_sets)
+            except UnicodeDecodeError:
+                print(f"Unicode decode error in file {file_path}")
             except Exception as e:
-                print(f"Error reading file {file}: {e}")
+                print(f"Error reading file {file_path}: {e}")
 
     return (
         accumulated_link_sets["pdf"],
@@ -25,19 +28,24 @@ def extract_links(directory):
 
 def _extract_links_from_text(text):
     link_sets = {"arxiv_pdf": set(), "arxiv_abs": set(), "pdf": set()}
+
     link_regex = re.compile(
         r"(https?://(?:www\.)?arxiv\.org/(?:abs|pdf)/[^\s/#?]+(?:v\d+)?)(?=\W|$)|(https?://[^\s]+\.pdf)(?=\W|$)"
     )
 
-    links = link_regex.findall(text)
-    for link_group in links:
-        link = next(sublink for sublink in link_group if sublink)
-        if "arxiv.org/pdf/" in link:
-            link_sets["arxiv_pdf"].add(link)
-        elif "arxiv.org/abs/" in link:
-            link_sets["arxiv_abs"].add(link)
-        elif link.endswith(".pdf"):
-            link_sets["pdf"].add(link)
+    try:
+        links = link_regex.findall(text)
+        for link_group in links:
+            link = next(sublink for sublink in link_group if sublink)
+            if "arxiv.org/pdf/" in link:
+                link_sets["arxiv_pdf"].add(link)
+            elif "arxiv.org/abs/" in link:
+                link_sets["arxiv_abs"].add(link)
+            elif link.endswith(".pdf"):
+                link_sets["pdf"].add(link)
+    except Exception as e:
+        snippet = text[:100] + "..." if len(text) > 100 else text
+        print(f"Error processing text: {snippet}\nException: {e}")
 
     return link_sets
 

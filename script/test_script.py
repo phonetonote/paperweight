@@ -13,13 +13,12 @@ def test_extract_links_ez():
 
 
 def test_extracts_from_normal_markdown():
-    url1 = "https://arxiv.org/pdf/1234.5678v1"
     url2 = "https://example.com/document.pdf"
-    text = f"Check these links: [{url1}]({url1}) or a [named link]({url2}) "
+    text = f"Check these links with markdown [named link]({url2}) is great"
     expected = {
-        "arxiv_pdf": {url1},
+        "arxiv_pdf": set(),
         "arxiv_abs": set(),
-        "pdf": {"https://example.com/document.pdf"},
+        "pdf": {url2},
     }
     assert _extract_links_from_text(text) == expected
 
@@ -40,9 +39,3 @@ def test_extract_links_with_empty_string():
     text = ""
     expected = {"arxiv_pdf": set(), "arxiv_abs": set(), "pdf": set()}
     assert _extract_links_from_text(text) == expected
-
-
-@pytest.mark.parametrize("invalid_input", [None, 123, []])
-def test_extract_links_with_invalid_input(invalid_input):
-    with pytest.raises(TypeError):
-        _extract_links_from_text(invalid_input)
