@@ -6,7 +6,9 @@ from enum import Enum
 from io import BytesIO
 import fitz  # type: ignore
 import requests  # type: ignore
-import openai
+from openai import OpenAI
+
+client = OpenAI()
 from dotenv import load_dotenv
 import struct
 
@@ -153,12 +155,10 @@ def extract_links_from_text(text):
         for link in links:
             paper = fetch_and_extract_text_from_pdf(link)
             processed_paper = process_paper(paper, client)
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": processed_paper.text[:EMBEDDING_CTX_LENGTH]}],
-                functions=extractor,
-                function_call={"name": "find_title"},
-            )
+            response = client.chat.completions.create(model="gpt-4",
+            messages=[{"role": "user", "content": processed_paper.text[:EMBEDDING_CTX_LENGTH]}],
+            functions=extractor,
+            function_call={"name": "find_title"})
 
             print("!! respone !!", response)
             print(processed_paper)
