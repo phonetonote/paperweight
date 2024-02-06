@@ -6,7 +6,7 @@
 - full pdf saved in a blob
 - text extraction via https://github.com/pymupdf/PyMuPDF
 - text embeddings from openai stored as [encoded JSON](https://datasette.io/plugins/datasette-faiss#user-content-configuration)
-- metadata via gpt-3.5 and outlines
+- metadata via gpt-3.5 turbo functions
 
 ## limitations
 

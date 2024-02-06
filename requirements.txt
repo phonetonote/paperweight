@@ -1,0 +1,4 @@
+PyMuPDF==1.23.21
+requests==2.31.0
+openai==1.11.0
+python-dotenv==1.0.0

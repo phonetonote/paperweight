@@ -2,13 +2,11 @@ import os
 import re
 import argparse
 from collections import namedtuple
-from enum import Enum
 from io import BytesIO
 import json
-import fitz  # type: ignore
-import requests  # type: ignore
+import fitz
+import requests
 from openai import OpenAI
-
 from dotenv import load_dotenv
 import struct
 
@@ -49,25 +47,80 @@ class ProcessedPaper:
         self.blob = paper.blob
         self.embedding: bytes = b""
 
+        self.title = None
+        self.categories = []
+        self.authors = []
+        self.abstract = None
+        self.published_date = None
+        self.summary = None
+        self.institution = None
+        self.location = None
+
+    def update_from_json(self, json_data):
+        self.title = json_data.get("title")
+        self.categories = json_data.get("categories")
+        self.authors = json_data.get("authors")
+        self.abstract = json_data.get("abstract")
+        self.published_date = json_data.get("published_date")
+        self.summary = json_data.get("summary")
+        self.institution = json_data.get("institution")
+        self.location = json_data.get("location")
+
     def __str__(self):
         return f"""ProcessedPaper(
     url={self.url},
     status={self.status},
-    text_length={len(self.text)}
-    blob_size={len(self.blob) if self.blob else 0}
-    embedding_size={len(self.embedding) if self.embedding else 0}
+    text_length={len(self.text)},
+    blob_size={len(self.blob) if self.blob else 0},
+    embedding_size={len(self.embedding) if self.embedding else 0},
+    title={self.title},
+    categories={self.categories},
+    authors={self.authors},
+    abstract={self.abstract},
+    published_date={self.published_date},
+    summary={f"{self.summary[0:100]}..." if self.summary else None},
+    institution={self.institution},
+    location={self.location}
 )
         """
 
 
 extractor = [
     {
-        "name": "find_title",
-        "description": "finds title in paper",
+        "name": "find_data",
+        "description": "finds data about the paper",
         "parameters": {
             "type": "object",
             "properties": {
                 "title": {"type": "string", "description": "Title of the paper"},
+                "categories": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Categories of the paper",
+                },
+                "authors": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Authors of the paper",
+                },
+                "abstract": {"type": "string", "description": "Abstract of the paper"},
+                "published_date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Published date of the paper",
+                },
+                "summary": {
+                    "type": "string",
+                    "description": "Summary of the paper. If it is an academic paper with an abstract, provide the abstract here. Otherwise, describe what the paper is about.",
+                },
+                "instituion": {
+                    "type": "string",
+                    "description": "Journal, institution, or organization of the paper",
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Central physical location of the paper if available, not a url.",
+                },
             },
         },
         "required": ["title"],
@@ -129,7 +182,7 @@ def fetch_and_extract_text_from_pdf(url):
         print("\n")
         return Paper(url=url, status="unable_to_fetch", text="", blob=None)
     except Exception as e:
-        print(f"  Error processing PDF!")
+        print(f"  Error processing PDF {url}: {e}")
         return Paper(url=url, status="processing_failed", text="", blob=None)
 
 
@@ -158,13 +211,13 @@ def extract_links_from_text(text):
                 model="gpt-4",
                 messages=[{"role": "user", "content": processed_paper.text[:EMBEDDING_CTX_LENGTH]}],
                 functions=extractor,
-                function_call={"name": "find_title"},
+                function_call={"name": "find_data"},
             )
 
             data = response.choices[0].message.function_call.arguments
             json_data = json.loads(data)
-            print(json_data)
-
+            processed_paper.update_from_json(json_data)
+            print(processed_paper)
             papers.add(processed_paper)
 
         return papers
