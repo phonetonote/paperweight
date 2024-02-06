@@ -4,15 +4,18 @@ import argparse
 from collections import namedtuple
 from enum import Enum
 from io import BytesIO
+import json
 import fitz  # type: ignore
 import requests  # type: ignore
 from openai import OpenAI
 
-client = OpenAI()
 from dotenv import load_dotenv
 import struct
 
 load_dotenv()
+
+client = OpenAI()
+
 
 EMBEDDING_CTX_LENGTH = 8191
 MAX_PDF_SIZE = 1 * 1024 * 1024 * 1024  #    ~1GB
@@ -56,10 +59,6 @@ class ProcessedPaper:
 )
         """
 
-
-client = openai.OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY", "<your OpenAI API key if not set as env var>")
-)
 
 extractor = [
     {
@@ -155,13 +154,16 @@ def extract_links_from_text(text):
         for link in links:
             paper = fetch_and_extract_text_from_pdf(link)
             processed_paper = process_paper(paper, client)
-            response = client.chat.completions.create(model="gpt-4",
-            messages=[{"role": "user", "content": processed_paper.text[:EMBEDDING_CTX_LENGTH]}],
-            functions=extractor,
-            function_call={"name": "find_title"})
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": processed_paper.text[:EMBEDDING_CTX_LENGTH]}],
+                functions=extractor,
+                function_call={"name": "find_title"},
+            )
 
-            print("!! respone !!", response)
-            print(processed_paper)
+            data = response.choices[0].message.function_call.arguments
+            json_data = json.loads(data)
+            print(json_data)
 
             papers.add(processed_paper)
 
