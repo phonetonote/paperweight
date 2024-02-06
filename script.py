@@ -6,9 +6,13 @@ from enum import Enum
 from io import BytesIO
 import fitz  # type: ignore
 import requests  # type: ignore
+import openai
 
+BasePaper = namedtuple("BasePaper", ["url", "status", "text", "blob"])
 
-BasePaper = namedtuple("Paper", ["url", "status", "text", "blob"])
+client = openai.OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY", "<your OpenAI API key if not set as env var>")
+)
 
 
 class Paper(BasePaper):
@@ -16,8 +20,30 @@ class Paper(BasePaper):
         return f"Paper(url={self.url}, status={self.status}, text_length={len(self.text)} blob_size={len(self.blob) if self.blob else 0})"
 
 
-MAX_PDF_SIZE_BYTES = 1 * 1024 * 1024 * 1024  # 1GB in bytes
-MAX_TEXT_SIZE = 1 * 1024 * 1024  # Approx. 1MB in characters
+MAX_PDF_SIZE = 1 * 1024 * 1024 * 1024  #    ~1GB
+MAX_TEXT_SIZE = 1 * 1024 * 1024  #          ~1MB
+
+import struct
+
+EMBEDDING_MODEL = "text-embedding-3-small"
+EMBEDDING_CTX_LENGTH = 8191
+EMBEDDING_ENCODING = "cl100k_base"
+
+
+def generate_embedding_for_text(text: str, client, model: str = EMBEDDING_MODEL) -> list[float]:
+    truncated_text = text[:EMBEDDING_CTX_LENGTH]
+    response = client.embeddings.create(model=model, input=[truncated_text])
+
+    if response.data:
+        embedding = response.data[0].embedding
+        return embedding
+    else:
+        print("Failed to generate embedding.")
+        return []
+
+
+def encode_embedding(vector: list[float]) -> bytes:
+    return struct.pack("f" * len(vector), *vector)
 
 
 def fetch_and_extract_text_from_pdf(url):
@@ -26,7 +52,7 @@ def fetch_and_extract_text_from_pdf(url):
         content_length = int(head_response.headers.get("Content-Length", 0))
         status = "success"
 
-        if content_length > MAX_PDF_SIZE_BYTES:
+        if content_length > MAX_PDF_SIZE:
             print(f"PDF is too large (>1GB), skipping blob storage for {url}")
             store_blob = False
             status = "pdf_too_large"
@@ -67,6 +93,16 @@ def fetch_and_extract_text_from_pdf(url):
         return Paper(url=url, status="processing_failed", text="", blob=None)
 
 
+def process_paper(paper: Paper, client):
+    if paper.status == "success" and paper.text:
+        embedding = generate_embedding_for_text(paper.text, client)
+        encoded_embedding = encode_embedding(embedding)
+        return encoded_embedding
+    else:
+        print(f"Skipping embedding for {paper.url} due to status: {paper.status}")
+        return None
+
+
 def _extract_links_from_text(text):
     link_regex = re.compile(r"https?://[^\s]+\.pdf(?=\W|$)")
     papers = set()
@@ -78,6 +114,9 @@ def _extract_links_from_text(text):
             print(paper)
             print("\n")
             papers.add(paper)
+
+        for paper in papers:
+            encoded_embedding = process_paper(paper, client)
 
         return papers
     except Exception as e:
