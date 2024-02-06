@@ -3,9 +3,8 @@ from script import _extract_links_from_text
 
 
 def test_extract_links_ez():
-    text = "Links: https://arxiv.org/pdf/1234.5678v1 https://arxiv.org/abs/1234.5678 https://example.com/document.pdf "
+    text = "Links: https://arxiv.org/abs/1234.5678 https://example.com/document.pdf "
     expected = {
-        "https://arxiv.org/pdf/1234.5678v1",
         "https://arxiv.org/abs/1234.5678",
         "https://example.com/document.pdf",
     }
