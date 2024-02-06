@@ -7,12 +7,17 @@ from io import BytesIO
 import fitz  # type: ignore
 import requests  # type: ignore
 import openai
+from dotenv import load_dotenv
+import struct
 
+load_dotenv()
+
+EMBEDDING_CTX_LENGTH = 8191
+MAX_PDF_SIZE = 1 * 1024 * 1024 * 1024  #    ~1GB
+MAX_TEXT_SIZE = 1 * 1024 * 1024  #          ~1MB
+EMBEDDING_MODEL = "text-embedding-3-small"
+EMBEDDING_ENCODING = "cl100k_base"
 BasePaper = namedtuple("BasePaper", ["url", "status", "text", "blob"])
-
-client = openai.OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY", "<your OpenAI API key if not set as env var>")
-)
 
 
 class Paper(BasePaper):
@@ -20,14 +25,9 @@ class Paper(BasePaper):
         return f"Paper(url={self.url}, status={self.status}, text_length={len(self.text)} blob_size={len(self.blob) if self.blob else 0})"
 
 
-MAX_PDF_SIZE = 1 * 1024 * 1024 * 1024  #    ~1GB
-MAX_TEXT_SIZE = 1 * 1024 * 1024  #          ~1MB
-
-import struct
-
-EMBEDDING_MODEL = "text-embedding-3-small"
-EMBEDDING_CTX_LENGTH = 8191
-EMBEDDING_ENCODING = "cl100k_base"
+client = openai.OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY", "<your OpenAI API key if not set as env var>")
+)
 
 
 def generate_embedding_for_text(text: str, client, model: str = EMBEDDING_MODEL) -> list[float]:
@@ -62,8 +62,6 @@ def fetch_and_extract_text_from_pdf(url):
         response = requests.get(url)
         response.raise_for_status()
 
-        print(f"Fetched url, processing PDF for {url}")
-
         text = ""
         with fitz.open(stream=BytesIO(response.content), filetype="pdf") as doc:
             for page in doc:
@@ -77,8 +75,6 @@ def fetch_and_extract_text_from_pdf(url):
                 else:
                     break
 
-        print("  Extracted text length in characters:", len(text))
-        print("\n")
         return Paper(
             url=url, status=status, text=text, blob=response.content if store_blob else None
         )
@@ -89,7 +85,6 @@ def fetch_and_extract_text_from_pdf(url):
         return Paper(url=url, status="unable_to_fetch", text="", blob=None)
     except Exception as e:
         print(f"  Error processing PDF!")
-        print("\n")
         return Paper(url=url, status="processing_failed", text="", blob=None)
 
 
@@ -100,10 +95,11 @@ def process_paper(paper: Paper, client):
         return encoded_embedding
     else:
         print(f"Skipping embedding for {paper.url} due to status: {paper.status}")
+        print("\n")
         return None
 
 
-def _extract_links_from_text(text):
+def extract_links_from_text(text):
     link_regex = re.compile(r"https?://[^\s]+\.pdf(?=\W|$)")
     papers = set()
 
@@ -122,6 +118,7 @@ def _extract_links_from_text(text):
     except Exception as e:
         snippet = text[:100] + "..." if len(text) > 100 else text
         print(f"Error processing text: {snippet}\nException: {e}")
+        print("\n")
         return set()
 
 
@@ -162,7 +159,7 @@ def extract_links(directory):
             try:
                 with open(file_path, "r", encoding="utf-8") as f:
                     file_content = f.read()
-                links = _extract_links_from_text(file_content)
+                links = extract_links_from_text(file_content)
                 all_links.update(links)
             except UnicodeDecodeError:
                 print(f"Unicode decode error in file {file_path}")
