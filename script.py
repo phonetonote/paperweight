@@ -17,17 +17,61 @@ MAX_PDF_SIZE = 1 * 1024 * 1024 * 1024  #    ~1GB
 MAX_TEXT_SIZE = 1 * 1024 * 1024  #          ~1MB
 EMBEDDING_MODEL = "text-embedding-3-small"
 EMBEDDING_ENCODING = "cl100k_base"
-BasePaper = namedtuple("BasePaper", ["url", "status", "text", "blob"])
+
+BasePaper = namedtuple(
+    "BasePaper",
+    ["url", "status", "text", "blob"],
+)
 
 
 class Paper(BasePaper):
     def __str__(self):
-        return f"Paper(url={self.url}, status={self.status}, text_length={len(self.text)} blob_size={len(self.blob) if self.blob else 0})"
+        return f"""
+            Paper(
+                url={self.url},
+                status={self.status},
+                text_length={len(self.text)}
+                blob_size={len(self.blob) if self.blob else 0}
+            )
+        """
+
+
+class ProcessedPaper:
+    def __init__(self, paper: Paper):
+        self.url = paper.url
+        self.status = paper.status
+        self.text = paper.text
+        self.blob = paper.blob
+        self.embedding: bytes = b""
+
+    def __str__(self):
+        return f"""ProcessedPaper(
+    url={self.url},
+    status={self.status},
+    text_length={len(self.text)}
+    blob_size={len(self.blob) if self.blob else 0}
+    embedding_size={len(self.embedding) if self.embedding else 0}
+)
+        """
 
 
 client = openai.OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY", "<your OpenAI API key if not set as env var>")
 )
+
+extractor = [
+    {
+        "name": "find_title",
+        "description": "finds title in paper",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "description": "Title of the paper"},
+            },
+        },
+        "required": ["title"],
+    }
+]
 
 
 def generate_embedding_for_text(text: str, client, model: str = EMBEDDING_MODEL) -> list[float]:
@@ -88,15 +132,16 @@ def fetch_and_extract_text_from_pdf(url):
         return Paper(url=url, status="processing_failed", text="", blob=None)
 
 
-def process_paper(paper: Paper, client):
+def process_paper(paper: Paper, client) -> ProcessedPaper:
+    processed_paper = ProcessedPaper(paper)
+
     if paper.status == "success" and paper.text:
         embedding = generate_embedding_for_text(paper.text, client)
         encoded_embedding = encode_embedding(embedding)
-        return encoded_embedding
-    else:
-        print(f"Skipping embedding for {paper.url} due to status: {paper.status}")
-        print("\n")
-        return None
+        processed_paper.embedding = encoded_embedding
+        processed_paper.status = "success_with_embedding"
+
+    return processed_paper
 
 
 def extract_links_from_text(text):
@@ -107,12 +152,18 @@ def extract_links_from_text(text):
         links = set(link_regex.findall(text))
         for link in links:
             paper = fetch_and_extract_text_from_pdf(link)
-            print(paper)
-            print("\n")
-            papers.add(paper)
+            processed_paper = process_paper(paper, client)
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=[{"role": "user", "content": processed_paper.text[:EMBEDDING_CTX_LENGTH]}],
+                functions=extractor,
+                function_call={"name": "find_title"},
+            )
 
-        for paper in papers:
-            encoded_embedding = process_paper(paper, client)
+            print("!! respone !!", response)
+            print(processed_paper)
+
+            papers.add(processed_paper)
 
         return papers
     except Exception as e:
