@@ -27,11 +27,6 @@ class LinkExtractor:
             for file in filter(lambda f: f.endswith(".md"), files):
                 try:
                     file_path = os.path.join(root, file)
-                    my_file = MyFile(
-                        full_path=file_path,
-                        file_creation_date=os.path.getctime(file_path),
-                        file_modified_date=os.path.getmtime(file_path),
-                    )
                     with open(file_path, "r", encoding="utf-8") as f:
                         links = set(self.LINK_REGEX.findall(f.read()))
                     for link in links:
@@ -40,6 +35,9 @@ class LinkExtractor:
                             processed_paper = self.process_paper(paper)
                             json_data = self.get_metadata(processed_paper)
                             processed_paper.update_from_json(json_data)
+                            file_create = os.path.getctime(file_path)
+                            file_updated = os.path.getmtime(file_path)
+                            my_file = MyFile(file_path, file_create, file_updated)
                             insert_paper(processed_paper, my_file)
                             print(processed_paper)
                         else:

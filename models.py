@@ -4,15 +4,15 @@ from dataclasses import dataclass
 @dataclass
 class MyFile:
     full_path: str
-    file_creation_date: float
-    file_modified_date: float
+    created_at: float
+    updated_at: float
 
     def __str__(self):
         return f"""
             MyFile(
                 full_path={self.full_path},
-                file_creation_date={self.file_creation_date},
-                file_modified_date={self.file_modified_date},
+                created_at={self.created_at},
+                updated_at={self.updated_at},
             )
         """
 

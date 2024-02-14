@@ -29,8 +29,8 @@ def init_db():
             blob BLOB,
             embedding BLOB,
             file_path TEXT,
-            file_creation_date TEXT,
-            file_modified_date TEXT
+            created_at TEXT,
+            updated_at TEXT
         )
     """
     )
@@ -47,7 +47,7 @@ def insert_paper(processed_paper, my_file):
             INSERT INTO papers (
                 url, status, text, blob, title, categories, authors,
                 abstract, published_date, summary, institution, location,
-                embedding, file_path, file_creation_date, file_modified_date
+                embedding, file_path, created_at, updated_at
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
@@ -66,8 +66,8 @@ def insert_paper(processed_paper, my_file):
                 processed_paper.location,
                 processed_paper.embedding,
                 my_file.full_path,
-                my_file.file_creation_date,
-                my_file.file_modified_date,
+                my_file.created_at,
+                my_file.updated_at,
             ),
         )
         conn.commit()
