@@ -22,11 +22,13 @@ full text is currently limited to 10mb per row. this is arbitrary and will be co
 requirements:
 - openai api key
 
-## coming soon
+## coming soon (?)
+- cloud backup
+-------
+- turbo mode with many [modal](https://modal.com/) containers
 - support more link types
    - arxiv
    - wikipedia
-- cloud backup
 - backing up full text and embeddings
 - datasette plugin
 - gptstore plugin (?)
