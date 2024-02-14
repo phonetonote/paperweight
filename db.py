@@ -27,7 +27,10 @@ def init_db():
             status TEXT,
             text TEXT,
             blob BLOB,
-            embedding BLOB
+            embedding BLOB,
+            file_path TEXT,
+            file_creation_date TEXT,
+            file_modified_date TEXT
         )
     """
     )
@@ -35,14 +38,18 @@ def init_db():
     conn.close()
 
 
-def insert_paper(processed_paper):
+def insert_paper(processed_paper, my_file):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     try:
         c.execute(
             """
-            INSERT INTO papers (url, status, text, blob, title, categories, authors, abstract, published_date, summary, institution, location, embedding)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO papers (
+                url, status, text, blob, title, categories, authors,
+                abstract, published_date, summary, institution, location,
+                embedding, file_path, file_creation_date, file_modified_date
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 processed_paper.url,
@@ -58,6 +65,9 @@ def insert_paper(processed_paper):
                 processed_paper.institution,
                 processed_paper.location,
                 processed_paper.embedding,
+                my_file.full_path,
+                my_file.file_creation_date,
+                my_file.file_modified_date,
             ),
         )
         conn.commit()

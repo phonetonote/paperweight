@@ -1,3 +1,22 @@
+from dataclasses import dataclass
+
+
+@dataclass
+class MyFile:
+    full_path: str
+    file_creation_date: float
+    file_modified_date: float
+
+    def __str__(self):
+        return f"""
+            MyFile(
+                full_path={self.full_path},
+                file_creation_date={self.file_creation_date},
+                file_modified_date={self.file_modified_date},
+            )
+        """
+
+
 class Paper:
     def __init__(self, url, status, text, blob):
         self.url = url
@@ -18,6 +37,7 @@ class Paper:
 
 class ProcessedPaper:
     def __init__(self, paper: Paper):
+        # self.file = paper.file
         self.url = paper.url
         self.status = paper.status
         self.text = paper.text

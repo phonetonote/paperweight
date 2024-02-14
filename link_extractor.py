@@ -4,14 +4,17 @@ import json
 import struct
 from dotenv import load_dotenv
 from openai import OpenAI
-from models import Paper, ProcessedPaper
+from models import MyFile, Paper, ProcessedPaper
 from db import insert_paper, check_paper_exists
 from text_extractor import fetch_and_extract_text_from_pdf
+
+# TODO get image of first page
 
 
 class LinkExtractor:
     EMBEDDING_MODEL = "text-embedding-3-small"
     EMBEDDING_CTX_LENGTH = 8191
+    LINK_REGEX = re.compile(r"https?://[^\s]+\.pdf(?=\W|$)")
 
     def __init__(self, directory):
         load_dotenv()
@@ -22,38 +25,27 @@ class LinkExtractor:
     def extract_links(self):
         for root, _, files in os.walk(self.directory):
             for file in filter(lambda f: f.endswith(".md"), files):
-                file_path = os.path.join(root, file)
                 try:
+                    file_path = os.path.join(root, file)
+                    my_file = MyFile(
+                        full_path=file_path,
+                        file_creation_date=os.path.getctime(file_path),
+                        file_modified_date=os.path.getmtime(file_path),
+                    )
                     with open(file_path, "r", encoding="utf-8") as f:
-                        file_content = f.read()
-                    self.pull_links_from_text(file_content)
-                except UnicodeDecodeError:
-                    print(f"Unicode decode error in file {file_path}")
+                        links = set(self.LINK_REGEX.findall(f.read()))
+                    for link in links:
+                        if not check_paper_exists(link):
+                            paper = fetch_and_extract_text_from_pdf(link)
+                            processed_paper = self.process_paper(paper)
+                            json_data = self.get_metadata(processed_paper)
+                            processed_paper.update_from_json(json_data)
+                            insert_paper(processed_paper, my_file)
+                            print(processed_paper)
+                        else:
+                            print(f"{link} already in db, skipping")
                 except Exception as e:
                     print(f"Error reading file {file_path}: {e}")
-
-    def pull_links_from_text(self, text):
-        link_regex = re.compile(r"https?://[^\s]+\.pdf(?=\W|$)")
-
-        try:
-            links = set(link_regex.findall(text))
-            if len(links) > 0:
-                print("links:", links)
-            for link in links:
-                if not check_paper_exists(link):
-                    paper = fetch_and_extract_text_from_pdf(link)
-                    processed_paper = self.process_paper(paper)
-                    json_data = self.get_metadata(processed_paper)
-                    processed_paper.update_from_json(json_data)
-                    insert_paper(processed_paper)
-                    print(processed_paper)
-                else:
-                    print(f"{link} already in db, skipping")
-
-        except Exception as e:
-            snippet = text[:100] + "..." if len(text) > 100 else text
-            print(f"Error processing text: {snippet}\nException: {e}")
-            print("\n")
 
     def process_paper(self, paper: Paper) -> ProcessedPaper:
         processed_paper = ProcessedPaper(paper)
