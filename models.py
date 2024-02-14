@@ -37,7 +37,6 @@ class Paper:
 
 class ProcessedPaper:
     def __init__(self, paper: Paper):
-        # self.file = paper.file
         self.url = paper.url
         self.status = paper.status
         self.text = paper.text
