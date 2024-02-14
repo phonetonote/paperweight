@@ -42,7 +42,6 @@ class ProcessedPaper:
         self.text = paper.text
         self.blob = paper.blob
         self.embedding: bytes = b""
-
         self.title = None
         self.categories = []
         self.authors = []
