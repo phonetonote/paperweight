@@ -95,6 +95,7 @@ def encode_embedding(vector: list[float]) -> bytes:
     return struct.pack("f" * len(vector), *vector)
 
 
+# TODO try to parallelize this
 extractor = [
     {
         "name": "find_data",
