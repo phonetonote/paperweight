@@ -1,15 +1,14 @@
 import sqlite3
 import json
 import base64
-
 from models import MyFile, ProcessedPaper
-
-# TODO move to args
-DB_NAME = "papers.db"
+from dotenv import load_dotenv
+import os
 
 
 def init_db():
-    conn = sqlite3.connect(DB_NAME)
+    load_dotenv()
+    conn = sqlite3.connect(os.getenv("DB_NAME"))
     c = conn.cursor()
 
     # LATER use `BLOB CHECK (jsonb_valid(authors))`
