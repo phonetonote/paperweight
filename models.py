@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+import base64
+from typing import Optional
+from fitz import Pixmap
 
 
 @dataclass
@@ -18,11 +21,19 @@ class MyFile:
 
 
 class Paper:
-    def __init__(self, url, status, text, blob):
+    def __init__(
+        self,
+        url: str,
+        status: str,
+        text: Optional[str],
+        blob: Optional[bytes],
+        pic: Optional[Pixmap],
+    ):
         self.url = url
         self.status = status
         self.text = text
         self.blob = blob
+        self.pic = pic
 
     def __str__(self):
         return f"""
@@ -31,6 +42,7 @@ class Paper:
                 status={self.status},
                 text_length={len(self.text)}
                 blob_size={len(self.blob) if self.blob else 0}
+                pic_size={len(self.pic) if self.pic else 0}
             )
         """
 
@@ -41,6 +53,8 @@ class ProcessedPaper:
         self.status = paper.status
         self.text = paper.text
         self.blob = paper.blob
+        self.pic = paper.pic
+        self.encoded_pic: Optional[str] = None
         self.embedding: bytes = b""
         self.title = None
         self.categories = []
@@ -50,6 +64,13 @@ class ProcessedPaper:
         self.summary = None
         self.institution = None
         self.location = None
+
+    def encode_pic(self):
+        if self.pic is None:
+            return
+
+        image_bytes = self.pic.tobytes("png")
+        self.encoded_pic = base64.b64encode(image_bytes).decode("utf-8")
 
     def update_from_json(self, json_data):
         self.title = json_data.get("title")

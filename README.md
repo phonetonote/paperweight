@@ -12,6 +12,8 @@
 
 embeddings are currently limited to the first 8191 characters of the pdf.  this is the max input size of `text-embedding-3-small`. chunking the text and sending it in parts to support full embeddings is a future feature.
 
+(2/15/24 update) - perhaps huge context windows are around the corner anyways
+
 full text is currently limited to 10mb per row. this is arbitrary and will be configurable in the future.
 
 

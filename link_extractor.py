@@ -2,13 +2,12 @@ import os
 import re
 import json
 import struct
+from typing import Set
 from dotenv import load_dotenv
 from openai import OpenAI
 from models import MyFile, Paper, ProcessedPaper
 from db import insert_paper, check_paper_exists
 from text_extractor import fetch_and_extract_text_from_pdf
-
-# TODO get image of first page
 
 
 class LinkExtractor:
@@ -28,11 +27,12 @@ class LinkExtractor:
                 try:
                     file_path = os.path.join(root, file)
                     with open(file_path, "r", encoding="utf-8") as f:
-                        links = set(self.LINK_REGEX.findall(f.read()))
+                        links: Set[str] = set(self.LINK_REGEX.findall(f.read()))
                     for link in links:
                         if not check_paper_exists(link):
                             paper = fetch_and_extract_text_from_pdf(link)
                             processed_paper = self.process_paper(paper)
+                            processed_paper.encode_pic()
                             json_data = self.get_metadata(processed_paper)
                             processed_paper.update_from_json(json_data)
                             file_create = os.path.getctime(file_path)

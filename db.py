@@ -1,5 +1,8 @@
 import sqlite3
 import json
+import base64
+
+from models import MyFile, ProcessedPaper
 
 # TODO move to args
 DB_NAME = "papers.db"
@@ -17,8 +20,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS papers (
             url TEXT PRIMARY KEY,
             title TEXT,
-            authors BLOB,
-            categories BLOB,
+            authors TEXT,
+            categories TEXT,
             abstract TEXT,
             published_date TEXT,
             summary TEXT,
@@ -28,6 +31,7 @@ def init_db():
             text TEXT,
             blob BLOB,
             embedding BLOB,
+            encoded_pic TEXT,
             file_path TEXT,
             created_at TEXT,
             updated_at TEXT
@@ -38,18 +42,21 @@ def init_db():
     conn.close()
 
 
-def insert_paper(processed_paper, my_file):
+def insert_paper(processed_paper: ProcessedPaper, my_file: MyFile):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
+
     try:
+        processed_paper.encoded_pic
+
         c.execute(
             """
             INSERT INTO papers (
                 url, status, text, blob, title, categories, authors,
                 abstract, published_date, summary, institution, location,
-                embedding, file_path, created_at, updated_at
+                embedding, encoded_pic, file_path, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 processed_paper.url,
@@ -65,6 +72,7 @@ def insert_paper(processed_paper, my_file):
                 processed_paper.institution,
                 processed_paper.location,
                 processed_paper.embedding,
+                processed_paper.encoded_pic,
                 my_file.full_path,
                 my_file.created_at,
                 my_file.updated_at,
