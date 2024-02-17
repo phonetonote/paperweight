@@ -10,6 +10,7 @@ from text_extractor import fetch_and_extract_text_from_pdf
 class LinkExtractor:
     EMBEDDING_MODEL = "text-embedding-3-small"
     LINK_REGEX = re.compile(r"https?://[^\s]+\.pdf(?=\W|$)")
+    EMBEDDING_CTX_LENGTH = 8191
 
     def __init__(self, directory, db_name: str, model_name: str):
         load_dotenv()
@@ -57,13 +58,13 @@ class LinkExtractor:
             encoded_embedding = encode_embedding(embedding)
             processed_paper.embedding = encoded_embedding
             processed_paper.encode_pic()
-            processed_paper.extract_data(self.client, self.model_name)
+            processed_paper.extract_data(self.client, self.model_name, self.EMBEDDING_CTX_LENGTH)
             processed_paper.status = "success_and_processed"
 
         return processed_paper
 
     def generate_embedding_for_text(self, text: str) -> list[float]:
-        truncated_text = text[: ProcessedPaper.EMBEDDING_CTX_LENGTH]
+        truncated_text = text[: self.EMBEDDING_CTX_LENGTH]
         response = self.client.embeddings.create(model=self.EMBEDDING_MODEL, input=[truncated_text])
 
         if response.data:

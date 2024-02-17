@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-import base64
-import json
+import base64, json
 from typing import Optional
 from fitz import Pixmap
 
@@ -52,8 +51,6 @@ class Paper:
 
 
 class ProcessedPaper(Paper):
-    EMBEDDING_CTX_LENGTH = 8191
-
     def __init__(self, paper: Paper):
         super().__init__(paper.url, paper.status, paper.text, paper.blob, paper.pic)
         self.encoded_pic: Optional[str] = None
@@ -74,10 +71,11 @@ class ProcessedPaper(Paper):
         image_bytes = self.pic.tobytes("png")
         self.encoded_pic = base64.b64encode(image_bytes).decode("utf-8")
 
-    def extract_data(self, client, model_name):
+    def extract_data(self, client, model_name: str, ctx_length: int):
+        # LATER improve with 1 shotting
         response = client.chat.completions.create(
             model=model_name,
-            messages=[{"role": "user", "content": self.text[: self.EMBEDDING_CTX_LENGTH]}],
+            messages=[{"role": "user", "content": self.text[:ctx_length]}],
             functions=extractor,
             function_call={"name": "find_data"},
         )
