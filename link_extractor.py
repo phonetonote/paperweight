@@ -15,12 +15,13 @@ class LinkExtractor:
     EMBEDDING_CTX_LENGTH = 8191
     LINK_REGEX = re.compile(r"https?://[^\s]+\.pdf(?=\W|$)")
 
-    def __init__(self, directory, db_name: str):
+    def __init__(self, directory, db_name: str, model_name: str):
         load_dotenv()
 
         self.directory = directory
         self.client = OpenAI()
         self.db_name = db_name
+        self.model_name = model_name
 
     def extract_links(self):
         for root, _, files in os.walk(self.directory):
@@ -69,7 +70,7 @@ class LinkExtractor:
 
     def get_metadata(self, processed_paper):
         response = self.client.chat.completions.create(
-            model="gpt-4",
+            model=self.model_name,
             messages=[
                 {"role": "user", "content": processed_paper.text[: self.EMBEDDING_CTX_LENGTH]}
             ],
@@ -86,7 +87,6 @@ def encode_embedding(vector: list[float]) -> bytes:
     return struct.pack("f" * len(vector), *vector)
 
 
-# TODO try to parallelize this (perf branch)
 extractor = [
     {
         "name": "find_data",
@@ -108,9 +108,8 @@ extractor = [
                 "abstract": {"type": "string", "description": "Abstract of the paper"},
                 "published_date": {
                     "type": "string",
-                    # TODO this is not outputting a consistent date format
                     "format": "date",
-                    "description": "Published date of the paper",
+                    "description": "Published date of the paper in format YYYY-MM-DD (as specific as possible)",
                 },
                 "summary": {
                     "type": "string",
