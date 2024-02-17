@@ -34,9 +34,11 @@ class LinkExtractor:
                         if not check_paper_exists(link, self.db_name):
                             paper = fetch_and_extract_text_from_pdf(link)
                             processed_paper = self.process_paper(paper)
-                            processed_paper.encode_pic()
-                            json_data = self.get_metadata(processed_paper)
-                            processed_paper.update_from_json(json_data)
+
+                            if paper.text:
+                                processed_paper.encode_pic()
+                                json_data = self.get_metadata(processed_paper)
+                                processed_paper.update_from_json(json_data)
                             file_create = os.path.getctime(file_path)
                             file_updated = os.path.getmtime(file_path)
                             my_file = MyFile(file_path, file_create, file_updated)
@@ -69,6 +71,7 @@ class LinkExtractor:
             return []
 
     def get_metadata(self, processed_paper):
+        # LATER improve with 1 shotting
         response = self.client.chat.completions.create(
             model=self.model_name,
             messages=[
@@ -94,34 +97,38 @@ extractor = [
         "parameters": {
             "type": "object",
             "properties": {
-                "title": {"type": "string", "description": "Title of the paper"},
-                "categories": {
+                "title": {"type": "string", "description": "Extracts the title of the paper"},
+                "keywords": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Categories of the paper",
+                    "description": "Extracts the keywords of the paper",
                 },
                 "authors": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Authors of the paper",
+                    "description": "Extracts the authors of the paper",
                 },
-                "abstract": {"type": "string", "description": "Abstract of the paper"},
+                "abstract": {"type": "string", "description": "Extracts the abstract of the paper"},
                 "published_date": {
                     "type": "string",
                     "format": "date",
-                    "description": "Published date of the paper in format YYYY-MM-DD (as specific as possible)",
+                    "description": "Extracts the published date of the paper in format YYYY-MM-DD (as specific as possible)",
                 },
                 "summary": {
                     "type": "string",
-                    "description": "Summary of the paper. If it is an academic paper with an abstract, provide the abstract here. Otherwise, describe what the paper is about.",
+                    "description": "Generates a summary of the paper. Directly describe what the paper is about.",
                 },
-                "instituion": {
+                "institution": {
                     "type": "string",
-                    "description": "Journal, institution, or organization of the paper",
+                    "description": "Extracts the journal, institution, or organization of the paper",
                 },
                 "location": {
                     "type": "string",
-                    "description": "Central physical location of the paper if available, not a url.",
+                    "description": "Extracts the Central physical location of the paper if available, not a url.",
+                },
+                "doi": {
+                    "type": "string",
+                    "description": "Extracts the Digital Object Identifier of the paper",
                 },
             },
         },

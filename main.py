@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 def parse_arguments():
     parser = argparse.ArgumentParser()
     dir_name = os.getenv("DIRECTORY_NAME") or "."
-    parser.add_argument("directory", help="Path to directory of markdown files", default=dir_name)
+    parser.add_argument("--directory", help="Path to directory of markdown files", default=dir_name)
     db_name = os.getenv("DB_NAME") or "papers.db"
     parser.add_argument("--db-name", help="Database name", default=db_name)
     model_name = os.getenv("MODEL_NAME") or "gpt-3.5-turbo-0125"

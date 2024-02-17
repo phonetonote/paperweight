@@ -8,7 +8,7 @@ def init_db(db_name: str):
     c = conn.cursor()
 
     # LATER use `BLOB CHECK (jsonb_valid(authors))`
-    # to validate jsonb on categories and authors -
+    # to validate jsonb on keywords and authors -
     # https://sqlite.org/forum/forumpost/fa6f64e3dc1a5d97
     c.execute(
         """
@@ -16,7 +16,7 @@ def init_db(db_name: str):
             url TEXT PRIMARY KEY,
             title TEXT,
             authors TEXT,
-            categories TEXT,
+            keywords TEXT,
             abstract TEXT,
             published_date TEXT,
             summary TEXT,
@@ -47,7 +47,7 @@ def insert_paper(processed_paper: ProcessedPaper, my_file: MyFile, db_name: str)
         c.execute(
             """
             INSERT INTO papers (
-                url, status, text, blob, title, categories, authors,
+                url, status, text, blob, title, keywords, authors,
                 abstract, published_date, summary, institution, location,
                 embedding, encoded_pic, file_path, created_at, updated_at
             )
@@ -59,7 +59,7 @@ def insert_paper(processed_paper: ProcessedPaper, my_file: MyFile, db_name: str)
                 processed_paper.text,
                 processed_paper.blob,
                 processed_paper.title,
-                json.dumps(processed_paper.categories),
+                json.dumps(processed_paper.keywords),
                 json.dumps(processed_paper.authors),
                 processed_paper.abstract,
                 processed_paper.published_date,
