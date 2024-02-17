@@ -20,25 +20,34 @@ class LinkExtractor:
         self.model_name = model_name
 
     def extract_links(self):
-        for root, _, files in os.walk(self.directory):
-            for file in filter(lambda f: f.endswith(".md"), files):
-                try:
-                    file_path = os.path.join(root, file)
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        links: Set[str] = set(self.LINK_REGEX.findall(f.read()))
-                    for link in links:
-                        if not check_paper_exists(link, self.db_name):
-                            paper = fetch_and_extract_text_from_pdf(link)
-                            processed_paper = self.process_paper(paper)
-                            file_create = os.path.getctime(file_path)
-                            file_updated = os.path.getmtime(file_path)
-                            my_file = MyFile(file_path, file_create, file_updated)
-                            insert_paper(processed_paper, my_file, self.db_name)
-                            print(processed_paper)
-                        else:
-                            print(f"{link} already in db, skipping")
-                except Exception as e:
-                    logging.info(f"Error reading file {file_path}: {e}")
+        print("scanning for md files")
+
+        md_files = [
+            os.path.join(root, file)
+            for root, _, files in os.walk(self.directory)
+            for file in files
+            if file.endswith(".md")
+        ]
+        print(f"found {len(md_files)} md files, searching for pdf links")
+
+        for file_path in md_files:
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    links: Set[str] = set(self.LINK_REGEX.findall(f.read()))
+                for link in links:
+                    if not check_paper_exists(link, self.db_name):
+                        paper = fetch_and_extract_text_from_pdf(link)
+                        print(f"processing {paper.file_name()}")
+                        processed_paper = self.process_paper(paper)
+                        file_create = os.path.getctime(file_path)
+                        file_updated = os.path.getmtime(file_path)
+                        my_file = MyFile(file_path, file_create, file_updated)
+                        insert_paper(processed_paper, my_file, self.db_name)
+                    else:
+                        print(f"skipping {link.split('/')[-1]}, already exists")
+            except Exception as e:
+                logging.info(f"Error reading file {file_path}: {e}")
+                logging.exception(e)
 
     def process_paper(self, paper: Paper) -> ProcessedPaper:
         processed_paper = ProcessedPaper(paper)

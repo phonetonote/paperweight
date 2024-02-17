@@ -36,27 +36,26 @@ class Paper:
         self.blob = blob
         self.pic = pic
 
+    def file_name(self):
+        return self.url.split("/")[-1]
+
     def __str__(self):
         return f"""
             Paper(
                 url={self.url},
                 status={self.status},
-                text_length={len(self.text)}
+                text_length={len(self.text) if self.text else 0}
                 blob_size={len(self.blob) if self.blob else 0}
                 pic_size={len(self.pic) if self.pic else 0}
             )
         """
 
 
-class ProcessedPaper:
+class ProcessedPaper(Paper):
     EMBEDDING_CTX_LENGTH = 8191
 
     def __init__(self, paper: Paper):
-        self.url = paper.url
-        self.status = paper.status
-        self.text = paper.text
-        self.blob = paper.blob
-        self.pic = paper.pic
+        super().__init__(paper.url, paper.status, paper.text, paper.blob, paper.pic)
         self.encoded_pic: Optional[str] = None
         self.embedding: bytes = b""
         self.title = None
@@ -75,9 +74,7 @@ class ProcessedPaper:
         image_bytes = self.pic.tobytes("png")
         self.encoded_pic = base64.b64encode(image_bytes).decode("utf-8")
 
-    # TODO dont love passing 2 things in here, clean up
     def extract_data(self, client, model_name):
-        # LATER improve with 1 shotting
         response = client.chat.completions.create(
             model=model_name,
             messages=[{"role": "user", "content": self.text[: self.EMBEDDING_CTX_LENGTH]}],
@@ -98,19 +95,16 @@ class ProcessedPaper:
         self.location = json_data.get("location")
 
     def __str__(self):
+        base_str = super().__str__()
         return f"""
-            ProcessedPaper(
-                url={self.url},
-                status={self.status},
-                text_length={len(self.text)},
-                blob_size={len(self.blob) if self.blob else 0},
-                embedding_size={len(self.embedding) if self.embedding else 0},
+            {base_str[:-1]}
+                , embedding_size={len(self.embedding) if self.embedding else 0},
                 title={self.title},
                 keywords={self.keywords},
                 authors={self.authors},
                 abstract={self.abstract},
                 published_date={self.published_date},
-                summary={f"{self.summary[0:100]}..." if self.summary else None},
+                summary={f"{self.summary[:100]}..." if self.summary else None},
                 institution={self.institution},
                 location={self.location}
             )
