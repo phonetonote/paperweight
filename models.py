@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import base64
+import json
 from typing import Optional
 from fitz import Pixmap
 
@@ -48,6 +49,8 @@ class Paper:
 
 
 class ProcessedPaper:
+    EMBEDDING_CTX_LENGTH = 8191
+
     def __init__(self, paper: Paper):
         self.url = paper.url
         self.status = paper.status
@@ -72,7 +75,19 @@ class ProcessedPaper:
         image_bytes = self.pic.tobytes("png")
         self.encoded_pic = base64.b64encode(image_bytes).decode("utf-8")
 
-    def update_from_json(self, json_data):
+    # TODO dont love passing 2 things in here, clean up
+    def extract_data(self, client, model_name):
+        # LATER improve with 1 shotting
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user", "content": self.text[: self.EMBEDDING_CTX_LENGTH]}],
+            functions=extractor,
+            function_call={"name": "find_data"},
+        )
+
+        data = response.choices[0].message.function_call.arguments
+        json_data = json.loads(data)
+
         self.title = json_data.get("title")
         self.keywords = json_data.get("keywords")
         self.authors = json_data.get("authors")
@@ -100,3 +115,50 @@ class ProcessedPaper:
                 location={self.location}
             )
         """
+
+
+extractor = [
+    {
+        "name": "find_data",
+        "description": "finds data about the paper",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "title": {"type": "string", "description": "Extracts the title of the paper"},
+                "keywords": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Extracts the keywords of the paper",
+                },
+                "authors": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Extracts the authors of the paper",
+                },
+                "abstract": {"type": "string", "description": "Extracts the abstract of the paper"},
+                "published_date": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Extracts the published date of the paper in format YYYY-MM-DD (as specific as possible)",
+                },
+                "summary": {
+                    "type": "string",
+                    "description": "Generates a summary of the paper. Directly describe what the paper is about.",
+                },
+                "institution": {
+                    "type": "string",
+                    "description": "Extracts the journal, institution, or organization of the paper",
+                },
+                "location": {
+                    "type": "string",
+                    "description": "Extracts the Central physical location of the paper if available, not a url.",
+                },
+                "doi": {
+                    "type": "string",
+                    "description": "Extracts the Digital Object Identifier of the paper",
+                },
+            },
+        },
+        "required": ["title"],
+    }
+]

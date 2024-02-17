@@ -1,5 +1,5 @@
 from io import BytesIO
-import requests
+import requests, logging
 from fitz import open as fitzopen, Pixmap
 from models import Paper
 
@@ -14,7 +14,9 @@ def fetch_and_extract_text_from_pdf(url: str) -> Paper:
         status = "success"
 
         if content_length > MAX_PDF_SIZE:
-            print(f"PDF is too large (>1GB), skipping blob storage for {url}")
+            logging.info(
+                f"PDF is too large (> {MAX_PDF_SIZE / 1024 / 1024}MB), skipping blob storage for {url}"
+            )
             store_blob = False
             status = "pdf_too_large"
         else:
@@ -48,9 +50,8 @@ def fetch_and_extract_text_from_pdf(url: str) -> Paper:
         )
 
     except requests.exceptions.RequestException as e:
-        print(f"Request failed! {url}: {e}")
-        print("\n")
+        logging.info(f"Request failed! {url}: {e}")
         return Paper(url=url, status="unable_to_fetch", text=None, blob=None)
     except Exception as e:
-        print(f"  Error processing PDF {url}: {e}")
+        logging.info(f"Error processing PDF {url}: {e}")
         return Paper(url=url, status="processing_failed", text=None, blob=None)

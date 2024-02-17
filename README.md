@@ -23,6 +23,8 @@ full text is currently limited to 10mb per row. this is arbitrary and will be co
 
 requirements:
 - openai api key
+- python 3.11.1
+   - probably works with 3.12, but has not been tested
 
 ## coming soon (?)
 - cloud backup

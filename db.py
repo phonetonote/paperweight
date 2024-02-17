@@ -1,5 +1,4 @@
-import sqlite3
-import json
+import logging, json, sqlite3
 from models import MyFile, ProcessedPaper
 
 
@@ -74,8 +73,8 @@ def insert_paper(processed_paper: ProcessedPaper, my_file: MyFile, db_name: str)
             ),
         )
         conn.commit()
-    except sqlite3.IntegrityError as e:
-        print(f"Paper with URL {processed_paper.url} already exists in the database. Error: {e}")
+    except Exception as e:
+        logging.info(f"Error inserting {processed_paper.url}: {e}")
     finally:
         conn.close()
 
