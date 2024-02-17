@@ -1,14 +1,10 @@
 import sqlite3
 import json
-import base64
 from models import MyFile, ProcessedPaper
-from dotenv import load_dotenv
-import os
 
 
-def init_db():
-    load_dotenv()
-    conn = sqlite3.connect(os.getenv("DB_NAME"))
+def init_db(db_name: str):
+    conn = sqlite3.connect(db_name)
     c = conn.cursor()
 
     # LATER use `BLOB CHECK (jsonb_valid(authors))`
@@ -41,8 +37,8 @@ def init_db():
     conn.close()
 
 
-def insert_paper(processed_paper: ProcessedPaper, my_file: MyFile):
-    conn = sqlite3.connect(DB_NAME)
+def insert_paper(processed_paper: ProcessedPaper, my_file: MyFile, db_name: str):
+    conn = sqlite3.connect(db_name)
     c = conn.cursor()
 
     try:
@@ -84,8 +80,9 @@ def insert_paper(processed_paper: ProcessedPaper, my_file: MyFile):
         conn.close()
 
 
-def check_paper_exists(url):
-    conn = sqlite3.connect(DB_NAME)
+def check_paper_exists(url, db_name):
+    conn = sqlite3.connect(db_name)
+
     c = conn.cursor()
     c.execute("SELECT url FROM papers WHERE url = ?", (url,))
     exists = c.fetchone() is not None

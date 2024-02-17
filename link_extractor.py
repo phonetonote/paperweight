@@ -15,11 +15,12 @@ class LinkExtractor:
     EMBEDDING_CTX_LENGTH = 8191
     LINK_REGEX = re.compile(r"https?://[^\s]+\.pdf(?=\W|$)")
 
-    def __init__(self, directory):
+    def __init__(self, directory, db_name: str):
         load_dotenv()
 
         self.directory = directory
         self.client = OpenAI()
+        self.db_name = db_name
 
     def extract_links(self):
         for root, _, files in os.walk(self.directory):
@@ -29,7 +30,7 @@ class LinkExtractor:
                     with open(file_path, "r", encoding="utf-8") as f:
                         links: Set[str] = set(self.LINK_REGEX.findall(f.read()))
                     for link in links:
-                        if not check_paper_exists(link):
+                        if not check_paper_exists(link, self.db_name):
                             paper = fetch_and_extract_text_from_pdf(link)
                             processed_paper = self.process_paper(paper)
                             processed_paper.encode_pic()
@@ -38,7 +39,7 @@ class LinkExtractor:
                             file_create = os.path.getctime(file_path)
                             file_updated = os.path.getmtime(file_path)
                             my_file = MyFile(file_path, file_create, file_updated)
-                            insert_paper(processed_paper, my_file)
+                            insert_paper(processed_paper, my_file, self.db_name)
                             print(processed_paper)
                         else:
                             print(f"{link} already in db, skipping")
@@ -85,7 +86,7 @@ def encode_embedding(vector: list[float]) -> bytes:
     return struct.pack("f" * len(vector), *vector)
 
 
-# TODO try to parallelize this
+# TODO try to parallelize this (perf branch)
 extractor = [
     {
         "name": "find_data",
