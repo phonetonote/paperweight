@@ -5,3 +5,5 @@ data/
 .vscode/
 .env
 papers.db
+__pycache__/
+
