@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import base64, json
 from typing import Optional
 from fitz import Pixmap
+from tenacity import retry, wait_random_exponential, stop_after_attempt
 
 
 @dataclass
@@ -71,6 +72,7 @@ class ProcessedPaper(Paper):
         image_bytes = self.pic.tobytes("png")
         self.encoded_pic = base64.b64encode(image_bytes).decode("utf-8")
 
+    @retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(5))
     def extract_data(self, client, model_name: str, ctx_length: int):
         # LATER improve with 1 shotting
         response = client.chat.completions.create(

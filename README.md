@@ -28,7 +28,9 @@ requirements:
 
 ## coming soon (?)
 - cloud backup
+- dataviz via tensorboard
 -------
+- n-shot training to extract data better
 - turbo mode with many [modal](https://modal.com/) containers
 - support more link types
    - arxiv

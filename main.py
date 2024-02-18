@@ -4,6 +4,8 @@ import os
 from db import init_db
 from link_extractor import LinkExtractor
 from dotenv import load_dotenv
+from dash_app import DashApp
+import threading
 
 
 def parse_arguments():
@@ -24,6 +26,10 @@ def parse_arguments():
     return parser.parse_args()
 
 
+def run_dash_app(dash_app):
+    dash_app.run(debug=False)
+
+
 def main():
     load_dotenv()
     args = parse_arguments()
@@ -32,10 +38,14 @@ def main():
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-
         logging.info(f"Starting link extraction from {args.directory} in verbose mode")
 
     init_db(db_name=args.db_name)
+
+    dash_app = DashApp(db_name=args.db_name)
+    dash_thread = threading.Thread(target=run_dash_app, args=(dash_app,), daemon=False)
+    dash_thread.start()
+
     LinkExtractor(args.directory, args.db_name, args.model_name).extract_links()
 
 

@@ -1,5 +1,7 @@
 import logging, json, sqlite3
 from models import MyFile, ProcessedPaper
+import pandas as pd
+from tenacity import retry, wait_random_exponential, stop_after_attempt
 
 
 def init_db(db_name: str):
@@ -27,8 +29,8 @@ def init_db(db_name: str):
             embedding BLOB,
             encoded_pic TEXT,
             file_path TEXT,
-            created_at TEXT,
-            updated_at TEXT
+            created_at FLOAT,
+            updated_at FLOAT
         )
     """
     )
@@ -77,6 +79,19 @@ def insert_paper(processed_paper: ProcessedPaper, my_file: MyFile, db_name: str)
         logging.info(f"Error inserting {processed_paper.url}: {e}")
     finally:
         conn.close()
+
+
+@retry(wait=wait_random_exponential(min=1, max=10), stop=stop_after_attempt(5))
+def fetch_papers_as_df(db_name: str) -> pd.DataFrame:
+    try:
+        conn = sqlite3.connect(db_name)
+        df = pd.read_sql_query("SELECT * FROM papers", conn)
+        conn.close()
+        return df
+    except sqlite3.OperationalError as e:
+        logging.info(f"Encountered a SQLite error: {e}, retrying...")
+        logging.exception(e)
+        raise  # re-raising the exception to allow the retry mechanism to kick in
 
 
 def check_paper_exists(url, db_name):

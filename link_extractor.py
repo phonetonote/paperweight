@@ -5,6 +5,7 @@ from openai import OpenAI
 from models import MyFile, Paper, ProcessedPaper
 from db import insert_paper, check_paper_exists
 from text_extractor import fetch_and_extract_text_from_pdf
+import numpy as np
 
 
 class LinkExtractor:
@@ -76,3 +77,10 @@ class LinkExtractor:
 
 def encode_embedding(vector: list[float]) -> bytes:
     return struct.pack("f" * len(vector), *vector)
+
+
+def decode_embedding(blob: bytes) -> np.ndarray:
+    if len(blob) % 4 != 0:
+        raise ValueError("The blob length is not a multiple of 4.")
+    num_floats = len(blob) // 4
+    return np.array(struct.unpack(f"{num_floats}f", blob))
