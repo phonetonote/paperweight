@@ -45,10 +45,12 @@ full text is currently limited to 10mb per row. this is arbitrary and will be co
 
 ## Usage
 
-Run via the command line with the following command
+run via the command line with the following command
 ```
 python main.py --directory ~/path/to/your/mds
 ```
+
+the dash will be accessible on `http://127.0.0.1:8050/`. see the `REMAIN_OPEN` arg below for keeping the dash running when processing is complete.
 
 ### CLI Args
 - `--directory` - path to the directory containing markdown files. defaults to the value of the `DIRECTORY_NAME` environment variable or the current directory if not set
