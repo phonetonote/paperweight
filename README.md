@@ -28,42 +28,28 @@ python main.py --directory ~/path/to/your/mds
 ```
 
 ### CLI Args
---directory: Path to the directory containing markdown files. Defaults to the value of the DIRECTORY_NAME environment variable or the current directory if not set.
-
---db-name: The name for the database. Defaults to the value of the DB_NAME environment variable or "papers.db" if not specified.
-
---model-name: Specifies the OpenAI model name to be used. Defaults to the value of the MODEL_NAME environment variable or "gpt-3.5-turbo-0125" if not provided.
-
---verbose: Enables verbose mode, providing detailed logging. This defaults to the boolean value of the VERBOSE environment variable or False if not set.
-
---remain-open: Keeps the application running even after processing is complete, useful for continuous operation or debugging. This defaults to the boolean value of the REMAIN_OPEN environment variable or False if not specified.
+- `--directory` - path to the directory containing markdown files. defaults to the value of the `DIRECTORY_NAME` environment variable or the current directory if not set
+- `--db-name` - the name for the database. defaults to the value of the `DB_NAME` environment variable or `papers.db` if not specified
+- `--model-name` - specifies the OpenAI model name to be used. defaults to the value of the `MODEL_NAME` environment variable or `gpt-3.5-turbo-0125` if not provided
+- `--verbose` - enables verbose mode, providing detailed logging. this defaults to the boolean value of the `VERBOSE` environment variable or `False` if not set
+- `--remain-open` - keeps the application running even after processing is complete, useful for continuous operation or debugging. this defaults to the boolean value of the `REMAIN_OPEN` environment variable or `False` if not specified
 
 ### Environment Variables
 To enhance security and flexibility, certain configurations are managed through environment variables:
+- `OPENAI_API_KEY` - your OpenAI API key, required for generating embeddings and extracting data. this is not explicitly called for anywhere in the application code, but is rather automagically used by the openai library.
+- `DIRECTORY_NAME` - (optional) can be set to define a default directory for `--directory`, overriding the default current directory
+- `DB_NAME` - (optional) sets a default database name for `--db-name`, overriding the default `papers.db`
+- `MODEL_NAME` - (optional) determines the default model name for `--model-name`, if not specified via CLI, defaulting to `gpt-3.5-turbo-0125`
+- `VERBOSE` - (optional) can be set to `true` to enable verbose mode by default, overriding the CLI `--verbose` flag
+- `REMAIN_OPEN` - (optional) when set to `true`, the application remains open after processing, overriding the `--remain-open` CLI flag. this is used to continue looking at the dash app after processing is complete.
 
-OPENAI_API_KEY: Your OpenAI API key, required for using the GPT-3.5 Turbo model. This is not explicitly called for anywhere in the application code, but is rather automagically used by the openai library.
-
-DIRECTORY_NAME: (Optional) Can be set to define a default directory for --directory, overriding the default current directory.
-
-DB_NAME: (Optional) Sets a default database name for --db-name, overriding the default "papers.db".
-
-MODEL_NAME: (Optional) Determines the default model name for --model-name, if not specified via CLI, defaulting to "gpt-3.5-turbo-0125".
-
-VERBOSE: (Optional) Can be set to "true" to enable verbose mode by default, overriding the CLI --verbose flag.
-
-REMAIN_OPEN: (Optional) When set to "true", the application remains open after processing, overriding the --remain-open CLI flag. This is used to continue looking at the dash app after processing is complete.
-
-#### the following environment variables are used for cloud backup functionality:
-
-S3_BUCKET_NAME: Specifies the S3 bucket name where backups are stored. Required for the backup functionality.
-
-S3_ENDPOINT_URL: The endpoint URL for S3 services, necessary for accessing the S3 bucket.
-
-AWS_ACCESS_KEY_ID: Your AWS access key ID, essential for authentication with AWS services.
-
-AWS_SECRET_ACCESS_KEY: Your AWS secret access key, used alongside the access key ID for secure access to AWS services.
-
-S3_REGION_NAME: Defines the AWS region for the S3 service. Defaults to "auto" if not explicitly set, allowing automatic determination based on the endpoint URL.
+#### more env vars for cloud backuop
+the following environment variables are used for cloud backup functionality:
+- `S3_BUCKET_NAME` - specifies the S3 bucket name where backups are stored
+- `S3_ENDPOINT_URL` - the endpoint URL for S3 services
+- `AWS_ACCESS_KEY_ID` - your AWS access key ID
+- `AWS_SECRET_ACCESS_KEY` - your AWS secret access key
+- `S3_REGION_NAME` - defines the AWS region for the S3 service. defaults to `auto` if not explicitly set, allowing automatic determination based on the endpoint URL
 
 
 ### .env example
@@ -131,6 +117,7 @@ results can be improved by better prompt engineering `extractor` in `models.py`
    - arxiv
    - wikipedia
 - backing up full text and embeddings
+- make embeddings and NER optional
 - modularize the existing functionality to reduce core dependencies
    - dash server is a separate service
    - cloud backup is a separate service
