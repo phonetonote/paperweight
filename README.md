@@ -22,6 +22,11 @@ full text is currently limited to 10mb per row. this is arbitrary and will be co
 
 ## Usage
 
+Run via the command line with the following command
+```
+python main.py --directory ~/path/to/your/mds
+```
+
 ### CLI Args
 --directory: Path to the directory containing markdown files. Defaults to the value of the DIRECTORY_NAME environment variable or the current directory if not set.
 
@@ -38,16 +43,6 @@ To enhance security and flexibility, certain configurations are managed through 
 
 OPENAI_API_KEY: Your OpenAI API key, required for using the GPT-3.5 Turbo model. This is not explicitly called for anywhere in the application code, but is rather automagically used by the openai library.
 
-S3_BUCKET_NAME: Specifies the S3 bucket name where backups are stored. Required for the backup functionality.
-
-S3_ENDPOINT_URL: The endpoint URL for S3 services, necessary for accessing the S3 bucket.
-
-AWS_ACCESS_KEY_ID: Your AWS access key ID, essential for authentication with AWS services.
-
-AWS_SECRET_ACCESS_KEY: Your AWS secret access key, used alongside the access key ID for secure access to AWS services.
-
-S3_REGION_NAME: Defines the AWS region for the S3 service. Defaults to "auto" if not explicitly set, allowing automatic determination based on the endpoint URL.
-
 DIRECTORY_NAME: (Optional) Can be set to define a default directory for --directory, overriding the default current directory.
 
 DB_NAME: (Optional) Sets a default database name for --db-name, overriding the default "papers.db".
@@ -58,23 +53,36 @@ VERBOSE: (Optional) Can be set to "true" to enable verbose mode by default, over
 
 REMAIN_OPEN: (Optional) When set to "true", the application remains open after processing, overriding the --remain-open CLI flag. This is used to continue looking at the dash app after processing is complete.
 
-#### .env Example
+#### the following environment variables are used for cloud backup functionality:
+
+S3_BUCKET_NAME: Specifies the S3 bucket name where backups are stored. Required for the backup functionality.
+
+S3_ENDPOINT_URL: The endpoint URL for S3 services, necessary for accessing the S3 bucket.
+
+AWS_ACCESS_KEY_ID: Your AWS access key ID, essential for authentication with AWS services.
+
+AWS_SECRET_ACCESS_KEY: Your AWS secret access key, used alongside the access key ID for secure access to AWS services.
+
+S3_REGION_NAME: Defines the AWS region for the S3 service. Defaults to "auto" if not explicitly set, allowing automatic determination based on the endpoint URL.
+
+
+### .env example
 To configure your script with environment variables, you can use a `.env` file. Here's an example that you can customize:
 
 ```
-# AWS S3 Configuration
-S3_BUCKET_NAME=your_bucket_name
-S3_ENDPOINT_URL=https://s3.your-region.amazonaws.com
-AWS_ACCESS_KEY_ID=your_access_key_id
-AWS_SECRET_ACCESS_KEY=your_secret_access_key
-S3_REGION_NAME=your_region_name
-
 # Application Configuration
 DIRECTORY_NAME=./path/to/markdowns
 DB_NAME=papers.db
 MODEL_NAME=gpt-3.5-turbo-0125
 VERBOSE=true
 REMAIN_OPEN=false
+
+# AWS S3 Configuration
+S3_BUCKET_NAME=your_bucket_name
+S3_ENDPOINT_URL=https://s3.your-region.amazonaws.com
+AWS_ACCESS_KEY_ID=your_access_key_id
+AWS_SECRET_ACCESS_KEY=your_secret_access_key
+S3_REGION_NAME=your_region_name
 ```
 
 replace the placeholder values with your actual configuration details. this file should be named `.env` and *should not* be committed to version control for security reasons (people can steal your openai key). this is why `.env` is in the `.gitignore` file.
