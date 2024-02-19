@@ -3,7 +3,7 @@
 paperweight backs up and extracts data from the pdf links in your markdown files
 
 ## features
-- searches folders of markdown files for links to pdfs
+- finds links to pdfs in markdown files
 - backup the pdf's in a sqlite database
 - full pdf saved in a blob
 - text extraction via https://github.com/pymupdf/PyMuPDF
@@ -14,7 +14,7 @@ paperweight backs up and extracts data from the pdf links in your markdown files
 
 ## limitations
 
-embeddings are currently limited to the first 8191 characters of the pdf.  this is the max input size of `text-embedding-3-small`. chunking the text and sending it in parts to support full embeddings is a future feature.
+embeddings are currently limited to the first 8191 tokens of the pdf.  this is the max input size of `text-embedding-3-small`. chunking the text and sending it in parts to support full embeddings is a future feature.
 
 (2/15/24 update) - perhaps huge context windows are around the corner anyways
 
