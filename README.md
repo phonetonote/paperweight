@@ -1,6 +1,6 @@
 # paperweight
 
-paperweight backs up and extracts data from the pdfs in your markdown files
+paperweight backs up and extracts data from the pdf links in your markdown files
 
 ## features
 - searches folders of markdown files for links to pdfs
