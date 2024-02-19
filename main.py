@@ -60,7 +60,6 @@ def main():
     aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
     s3_region_name = os.getenv("S3_REGION_NAME") or "auto"
 
-    # Ensuring all necessary information is provided
     if not all(
         [s3_bucket_name, s3_endpoint_url, aws_access_key_id, aws_secret_access_key, args.db_name]
     ):

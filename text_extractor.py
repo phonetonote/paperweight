@@ -50,8 +50,10 @@ def fetch_and_extract_text_from_pdf(url: str) -> Paper:
         )
 
     except requests.exceptions.RequestException as e:
-        logging.info(f"Request failed! {url}: {e}")
+        logging.info(f"request failed - {url}: {e}")
+        logging.exception(e)
         return Paper(url=url, status="unable_to_fetch", text=None, blob=None)
     except Exception as e:
         logging.info(f"Error processing PDF {url}: {e}")
+        logging.exception(e)
         return Paper(url=url, status="processing_failed", text=None, blob=None)

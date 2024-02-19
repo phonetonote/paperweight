@@ -109,6 +109,11 @@ if I were to run into issues, [turning on WAL mode](https://til.simonwillison.ne
 
 if you are running into issues, or want to pull from the database more intensely, you might want to consider turning on WAL mode. The main downside seems to be the creation of two more files.
 
+## prompt engineering
+
+results can be improved by better prompt engineering `extractor` in `models.py`
+
+
 ## coming soon (?)
 - n-shot training to extract data better
 - turbo mode with many [modal](https://modal.com/) containers
