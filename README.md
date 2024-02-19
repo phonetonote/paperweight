@@ -2,12 +2,17 @@
 
 paperweight backs up and extracts data from the pdf links in your markdown files
 
-- script running in CLI:
-  <img width="400" alt="cli screenshot" src="https://github.com/phonetonote/paperweight/assets/1139703/dc5f3caa-7277-4c91-bf3c-fd6f0ba6ed91">
-- dash showing embeddings in 3d space:
-  <img width="650" alt="dash screenshot" src="https://github.com/phonetonote/paperweight/assets/1139703/b1685280-652e-4f83-9179-db0f62f465f9">
-- sqlite db (shown in [Beekeper Studio Ultimate](https://www.beekeeperstudio.io/))
-  ![image](https://github.com/phonetonote/paperweight/assets/1139703/f57ee402-f3ab-4fce-84e2-50dc3d4a803d)
+script running in CLI:
+
+<img width="400" alt="cli screenshot" src="https://github.com/phonetonote/paperweight/assets/1139703/dc5f3caa-7277-4c91-bf3c-fd6f0ba6ed91">
+
+dash showing embeddings in 3d space:
+
+<img width="650" alt="dash screenshot" src="https://github.com/phonetonote/paperweight/assets/1139703/b1685280-652e-4f83-9179-db0f62f465f9">
+
+sqlite db (shown in [Beekeper Studio Ultimate](https://www.beekeeperstudio.io/))
+
+![image](https://github.com/phonetonote/paperweight/assets/1139703/f57ee402-f3ab-4fce-84e2-50dc3d4a803d)
 
 
 ## features
