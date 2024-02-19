@@ -2,6 +2,9 @@
 
 paperweight backs up and extracts data from the pdf links in your markdown files
 
+<img width="400" alt="image" src="https://github.com/phonetonote/paperweight/assets/1139703/dc5f3caa-7277-4c91-bf3c-fd6f0ba6ed91">
+
+
 ## features
 - finds links to pdfs in markdown files
 - backup the pdf's in a sqlite database
