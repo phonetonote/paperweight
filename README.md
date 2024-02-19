@@ -13,6 +13,16 @@ paperweight backs up and extracts data from the pdf links in your markdown files
 - text extraction via https://github.com/pymupdf/PyMuPDF
 - text embeddings from openai stored as [encoded JSON](https://datasette.io/plugins/datasette-faiss#user-content-configuration)
 - metadata via gpt-3.5 turbo functions
+  - title
+  - keywords
+  - authors
+  - abstract
+  - published_date
+  - summary
+  - institution
+  - location
+  - doi
+- screenshot of first page saved as blob
 - 3d viz of embeddings via dash and plotly
 - cloud backup via [cloudflare r2](https://developers.cloudflare.com/r2/examples/aws/boto3/) or amazon s3
 
