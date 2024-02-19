@@ -1,5 +1,7 @@
 # paper weight
 
+paperweight backs up and extracts info from the pdfs in a folder of markdown files
+
 ## features
 - searches folders of markdown files for links to pdfs
 - backup the pdf's in a sqlite database
