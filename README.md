@@ -116,6 +116,7 @@ results can be improved by better prompt engineering `extractor` in `models.py`
 - support more link types
    - arxiv
    - wikipedia
+- support local pdf files
 - backing up full text and embeddings
 - make embeddings and NER optional
 - modularize the existing functionality to reduce core dependencies

@@ -45,6 +45,8 @@ def main():
             level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
         logging.info(f"Starting link extraction from {args.directory} in verbose mode")
+    else:
+        logging.basicConfig(level=logging.CRITICAL)
 
     init_db(db_name=args.db_name)
 
