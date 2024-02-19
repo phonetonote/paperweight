@@ -1,4 +1,4 @@
-# paper weight
+# paperweight
 
 paperweight backs up and extracts info from the pdfs in a folder of markdown files
 
