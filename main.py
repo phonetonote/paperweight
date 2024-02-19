@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+from cloud_backup import backup_db
 from db import init_db
 from link_extractor import LinkExtractor
 from dotenv import load_dotenv
@@ -22,6 +23,11 @@ def parse_arguments():
 
     verbose_env = os.getenv("VERBOSE", "False").lower() in ("true", "1", "t")
     parser.add_argument("--verbose", help="Verbose mode", action="store_true", default=verbose_env)
+
+    remain_open_env = os.getenv("REMAIN_OPEN", "False").lower() in ("true", "1", "t")
+    parser.add_argument(
+        "--remain-open", help="Remain open mode", action="store_true", default=remain_open_env
+    )
 
     return parser.parse_args()
 
@@ -47,6 +53,34 @@ def main():
     dash_thread.start()
 
     LinkExtractor(args.directory, args.db_name, args.model_name).extract_links()
+
+    s3_bucket_name = os.getenv("S3_BUCKET_NAME")
+    s3_endpoint_url = os.getenv("S3_ENDPOINT_URL")
+    aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    s3_region_name = os.getenv("S3_REGION_NAME") or "auto"
+
+    # Ensuring all necessary information is provided
+    if not all(
+        [s3_bucket_name, s3_endpoint_url, aws_access_key_id, aws_secret_access_key, args.db_name]
+    ):
+        print("skip backup, missing s3 info")
+    else:
+        backup_db(
+            args.db_name,
+            s3_bucket_name,
+            s3_endpoint_url,
+            aws_access_key_id,
+            aws_secret_access_key,
+            s3_region_name,
+        )
+
+    if not args.remain_open:
+        print("shutting down dash app")
+        # flask and by extension dash is designed for dev mode and to be killed abruptly
+        os._exit(0)
+    else:
+        print("running in remain open mode, visit the dash app at http://127.0.0.1:8050/")
 
 
 if __name__ == "__main__":
